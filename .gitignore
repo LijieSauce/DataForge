@@ -1,0 +1,8 @@
+dataset/*
+dataset/images/test/00016.jpg
+test/out/bing/0011.jpg
+数据集/*
+目标/*
+**/__pycache__/**
+输出/*
+test/out/*
