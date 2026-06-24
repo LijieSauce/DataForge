@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图像数据集工具箱 - UI样本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', Arial, sans-serif;
+            background-color: #F5E6D3;
+            color: #4A4A4A;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部工具栏 */
+        .toolbar {
+            background-color: #EDD5B8;
+            padding: 12px 20px;
+            border-bottom: 2px solid #C9B79C;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toolbar-section {
+            display: flex;
+            gap: 8px;
+            padding-right: 15px;
+            border-right: 2px solid #C9B79C;
+        }
+
+        .toolbar-section:last-child {
+            border-right: none;
+        }
+
+        .toolbar button {
+            background-color: #D4B896;
+            color: #4A4A4A;
+            border: 1px solid #C9B79C;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .toolbar button:hover {
+            background-color: #C9B79C;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .toolbar button:active {
+            transform: translateY(0);
+        }
+
+        /* 主内容区域 */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* 左侧侧边栏 */
+        .sidebar {
+            width: 250px;
+            background-color: #EDD5B8;
+            border-right: 2px solid #C9B79C;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s;
+        }
+
+        .sidebar.collapsed {
+            margin-left: -250px;
+        }
+
+        .sidebar-header {
+            padding: 12px;
+            background-color: #D4B896;
+            border-bottom: 1px solid #C9B79C;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            font-size: 16px;
+            color: #4A4A4A;
+        }
+
+        .toggle-btn {
+            background-color: #C9B79C;
+            color: #4A4A4A;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .toggle-btn:hover {
+            background-color: #B8A688;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        /* 目录树 */
+        .tree {
+            list-style: none;
+        }
+
+        .tree-item {
+            margin: 4px 0;
+        }
+
+        .tree-item-header {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .tree-item-header:hover {
+            background-color: #D4B896;
+        }
+
+        .tree-icon {
+            margin-right: 6px;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .tree-icon.expanded {
+            transform: rotate(90deg);
+        }
+
+        .tree-children {
+            margin-left: 20px;
+            display: none;
+        }
+
+        .tree-children.show {
+            display: block;
+        }
+
+        /* 中间工作区容器 */
+        .workspace-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 右侧工作区和AI对话框容器 */
+        .content-area {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* 中间工作区 */
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #C9B79C;
+        }
+
+        .workspace-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            color: #C9B79C;
+            font-weight: 300;
+            position: relative;
+        }
+
+        /* 侧边栏折叠按钮 */
+        .sidebar-toggle {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            background-color: #D4B896;
+            border: 1px solid #C9B79C;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #C9B79C;
+        }
+
+        /* 右侧AI对话框 */
+        .ai-chat {
+            width: 350px;
+            background-color: #EDD5B8;
+            display: flex;
+            flex-direction: column;
+            transition: margin-right 0.3s;
+        }
+
+        .ai-chat.collapsed {
+            margin-right: -350px;
+        }
+
+        .ai-chat-header {
+            padding: 12px;
+            background-color: #D4B896;
+            border-bottom: 1px solid #C9B79C;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-chat-header h3 {
+            font-size: 16px;
+            color: #4A4A4A;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background-color: #D4B896;
+            color: #4A4A4A;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+            background-color: #F5E6D3;
+            color: #4A4A4A;
+            border: 1px solid #C9B79C;
+            border-bottom-left-radius: 4px;
+        }
+
+        .ai-chat-input {
+            padding: 12px;
+            background-color: #D4B896;
+            border-top: 1px solid #C9B79C;
+            display: flex;
+            gap: 8px;
+        }
+
+        .ai-chat-input input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #C9B79C;
+            border-radius: 6px;
+            background-color: #F5E6D3;
+            color: #4A4A4A;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .ai-chat-input input:focus {
+            border-color: #B8A688;
+            box-shadow: 0 0 0 2px rgba(184, 166, 136, 0.2);
+        }
+
+        .ai-chat-input button {
+            background-color: #C9B79C;
+            color: #4A4A4A;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .ai-chat-input button:hover {
+            background-color: #B8A688;
+        }
+
+        /* AI折叠按钮 */
+        .ai-toggle {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background-color: #D4B896;
+            border: 1px solid #C9B79C;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .ai-toggle:hover {
+            background-color: #C9B79C;
+        }
+
+        /* 底部日志区（仅在工作区下方） */
+        .log-container {
+            background-color: #EDD5B8;
+            border-top: 2px solid #C9B79C;
+            transition: height 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-container.collapsed {
+            height: 40px !important;
+        }
+
+        .log-header {
+            padding: 10px 20px;
+            background-color: #D4B896;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #C9B79C;
+        }
+
+        .log-header h3 {
+            font-size: 14px;
+            color: #4A4A4A;
+        }
+
+        .log-content {
+            flex: 1;
+            padding: 10px 20px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-container.collapsed .log-content {
+            display: none;
+        }
+
+        .log-entry {
+            margin: 4px 0;
+        }
+
+        .log-timestamp {
+            color: #8B7355;
+            margin-right: 10px;
+        }
+
+        .log-message {
+            color: #4A4A4A;
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F5E6D3;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #C9B79C;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #B8A688;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部工具栏 -->
+    <div class="toolbar">
+        <div class="toolbar-section">
+            <button>📄 新建</button>
+            <button>💾 保存</button>
+            <button>📤 导出</button>
+        </div>
+        <div class="toolbar-section">
+            <button>🌐 网络图片收集</button>
+            <button>🔄 格式转换</button>
+            <button>✨ 数据增强</button>
+            <button>📊 数据集划分</button>
+        </div>
+        <div class="toolbar-section">
+            <button>🧹 图像清洗</button>
+            <button>✂️ 目标提取</button>
+            <button>➕ 负样本生成</button>
+            <button>👁️ 可视化预览</button>
+        </div>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-container">
+        <!-- 左侧侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>📁 文件目录</h3>
+            </div>
+            <div class="sidebar-content">
+                <ul class="tree">
+                    <li class="tree-item">
+                        <div class="tree-item-header" onclick="toggleTree(this)">
+                            <span class="tree-icon">▶</span>
+                            <span>📁 dataset</span>
+                        </div>
+                        <ul class="tree-children">
+                            <li class="tree-item">
+                                <div class="tree-item-header" onclick="toggleTree(this)">
+                                    <span class="tree-icon">▶</span>
+                                    <span>📁 images</span>
+                                </div>
+                                <ul class="tree-children">
+                                    <li class="tree-item">
+                                        <div class="tree-item-header" onclick="toggleTree(this)">
+                                            <span class="tree-icon">▶</span>
+                                            <span>📁 train</span>
+                                        </div>
+                                        <ul class="tree-children">
+                                            <li class="tree-item">
+                                                <div class="tree-item-header">
+                                                    <span style="margin-left: 18px;">🖼️ 0001.jpg</span>
+                                                </div>
+                                            </li>
+                                            <li class="tree-item">
+                                                <div class="tree-item-header">
+                                                    <span style="margin-left: 18px;">🖼️ 0002.jpg</span>
+                                                </div>
+                                            </li>
+                                            <li class="tree-item">
+                                                <div class="tree-item-header">
+                                                    <span style="margin-left: 18px;">🖼️ 0003.jpg</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li class="tree-item">
+                                        <div class="tree-item-header" onclick="toggleTree(this)">
+                                            <span class="tree-icon">▶</span>
+                                            <span>📁 val</span>
+                                        </div>
+                                        <ul class="tree-children">
+                                            <li class="tree-item">
+                                                <div class="tree-item-header">
+                                                    <span style="margin-left: 18px;">🖼️ 0001.jpg</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li class="tree-item">
+                                        <div class="tree-item-header" onclick="toggleTree(this)">
+                                            <span class="tree-icon">▶</span>
+                                            <span>📁 test</span>
+                                        </div>
+                                        <ul class="tree-children">
+                                            <li class="tree-item">
+                                                <div class="tree-item-header">
+                                                    <span style="margin-left: 18px;">🖼️ 0001.jpg</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="tree-item">
+                                <div class="tree-item-header" onclick="toggleTree(this)">
+                                    <span class="tree-icon">▶</span>
+                                    <span>📁 labels</span>
+                                </div>
+                                <ul class="tree-children">
+                                    <li class="tree-item">
+                                        <div class="tree-item-header">
+                                            <span style="margin-left: 18px;">📁 train</span>
+                                        </div>
+                                    </li>
+                                    <li class="tree-item">
+                                        <div class="tree-item-header">
+                                            <span style="margin-left: 18px;">📁 val</span>
+                                        </div>
+                                    </li>
+                                    <li class="tree-item">
+                                        <div class="tree-item-header">
+                                            <span style="margin-left: 18px;">📁 test</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="tree-item">
+                                <div class="tree-item-header">
+                                    <span style="margin-left: 18px;">📄 dataset.yaml</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="tree-item">
+                        <div class="tree-item-header" onclick="toggleTree(this)">
+                            <span class="tree-icon">▶</span>
+                            <span>📁 output</span>
+                        </div>
+                        <ul class="tree-children">
+                            <li class="tree-item">
+                                <div class="tree-item-header">
+                                    <span style="margin-left: 18px;">📁 preview</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- 中间工作区容器 -->
+        <div class="workspace-container">
+            <!-- 工作区和AI对话框容器 -->
+            <div class="content-area">
+                <!-- 中间工作区 -->
+                <main class="workspace">
+                    <div class="workspace-content">
+                        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                        <button class="ai-toggle" onclick="toggleAiChat()">🤖</button>
+                        工作区
+                    </div>
+                </main>
+
+                <!-- 右侧AI对话框 -->
+                <aside class="ai-chat" id="aiChat">
+                    <div class="ai-chat-header">
+                        <h3>🤖 AI助手</h3>
+                        <button class="toggle-btn" onclick="toggleAiChat()">隐藏</button>
+                    </div>
+                    <div class="ai-chat-messages" id="aiMessages">
+                        <div class="message ai">
+                            你好！我是AI助手，有什么可以帮你的吗？😊
+                        </div>
+                        <div class="message user">
+                            帮我处理一下图像数据集
+                        </div>
+                        <div class="message ai">
+                            好的！请选择你需要的功能：<br>
+                            • 网络图片收集<br>
+                            • 格式转换<br>
+                            • 数据增强<br>
+                            • 图像清洗<br>
+                            你想从哪个开始呢？
+                        </div>
+                    </div>
+                    <div class="ai-chat-input">
+                        <input type="text" id="aiInput" placeholder="输入消息..." onkeypress="handleKeyPress(event)">
+                        <button onclick="sendMessage()">发送</button>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- 底部日志区（仅在工作区下方） -->
+            <div class="log-container" id="logContainer" style="height: 150px;">
+                <div class="log-header">
+                    <h3>📋 日志输出</h3>
+                    <button class="toggle-btn" onclick="toggleLog()">折叠</button>
+                </div>
+                <div class="log-content" id="logContent">
+                    <div class="log-entry">
+                        <span class="log-timestamp">[2026-06-24 10:30:15]</span>
+                        <span class="log-message">系统初始化完成</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-timestamp">[2026-06-24 10:30:16]</span>
+                        <span class="log-message">加载配置文件成功</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-timestamp">[2026-06-24 10:30:17]</span>
+                        <span class="log-message">图像数据集工具箱已就绪</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-timestamp">[2026-06-24 10:30:20]</span>
+                        <span class="log-message">等待用户操作...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 切换目录树展开/折叠
+        function toggleTree(element) {
+            const icon = element.querySelector('.tree-icon');
+            const children = element.parentElement.querySelector('.tree-children');
+
+            if (children) {
+                children.classList.toggle('show');
+                icon.classList.toggle('expanded');
+            }
+        }
+
+        // 切换侧边栏显示/隐藏
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // 切换AI对话框显示/隐藏
+        function toggleAiChat() {
+            const aiChat = document.getElementById('aiChat');
+            const toggleBtn = aiChat.querySelector('.ai-chat-header .toggle-btn');
+            aiChat.classList.toggle('collapsed');
+            toggleBtn.textContent = aiChat.classList.contains('collapsed') ? '显示' : '隐藏';
+        }
+
+        // 切换日志区折叠/展开
+        function toggleLog() {
+            const logContainer = document.getElementById('logContainer');
+            const toggleBtn = event.target;
+
+            logContainer.classList.toggle('collapsed');
+            toggleBtn.textContent = logContainer.classList.contains('collapsed') ? '展开' : '折叠';
+        }
+
+        // 添加一条日志
+        function addLog(message) {
+            const logContent = document.getElementById('logContent');
+            const now = new Date();
+            const timestamp = `[${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}]`;
+
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-timestamp">${timestamp}</span>
+                <span class="log-message">${message}</span>
+            `;
+
+            logContent.appendChild(logEntry);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        // 发送AI消息
+        function sendMessage() {
+            const input = document.getElementById('aiInput');
+            const message = input.value.trim();
+
+            if (message === '') return;
+
+            // 添加用户消息
+            const messagesContainer = document.getElementById('aiMessages');
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.textContent = message;
+            messagesContainer.appendChild(userMessage);
+
+            // 清空输入框
+            input.value = '';
+
+            // 模拟AI回复
+            setTimeout(() => {
+                const aiMessage = document.createElement('div');
+                aiMessage.className = 'message ai';
+                aiMessage.textContent = '收到！这是一个UI样本演示，实际功能需要后端支持哦～';
+                messagesContainer.appendChild(aiMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                // 添加日志
+                addLog('AI助手：已响应用户消息');
+            }, 500);
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            addLog('用户：发送了一条消息');
+        }
+
+        // 处理回车键发送
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // 页面加载完成后添加欢迎日志
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                addLog('UI样本加载完成 ✨');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
