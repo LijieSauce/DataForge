@@ -3,6 +3,7 @@
 操作说明：
 - 按 A/a：保留当前图片和标注
 - 按 D/d：删除当前图片和标注
+- 按 S/s：移动到待重标注目录
 - 按 Q/q 或 ESC：退出程序
 """
 
@@ -13,13 +14,39 @@ import numpy as np
 from pathlib import Path
 
 
-REANNOTATION_IMAGE_DIR = r"E:\meter\输出\目标1"
+REANNOTATION_IMAGE_DIR = r"输出/表计_res"
+
+# 最大显示尺寸（可根据屏幕调整）
+MAX_DISPLAY_WIDTH = 1600
+MAX_DISPLAY_HEIGHT = 900
 
 
 def read_image(path):
     """兼容中文路径的图片读取"""
     data = np.fromfile(str(path), dtype=np.uint8)
     return cv2.imdecode(data, cv2.IMREAD_COLOR)
+
+
+def resize_for_display(image, max_width=MAX_DISPLAY_WIDTH, max_height=MAX_DISPLAY_HEIGHT):
+    """按比例缩放图片以适应显示窗口"""
+    h, w = image.shape[:2]
+    
+    # 如果图片小于最大尺寸，不缩放
+    if w <= max_width and h <= max_height:
+        return image, 1.0
+    
+    # 计算缩放比例，保持宽高比
+    scale_w = max_width / w
+    scale_h = max_height / h
+    scale = min(scale_w, scale_h)
+    
+    # 计算新尺寸
+    new_w = int(w * scale)
+    new_h = int(h * scale)
+    
+    # 缩放图片
+    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    return resized, scale
 
 
 def get_all_images(dataset_path):
@@ -177,7 +204,7 @@ def move_image_for_reannotation(image_info):
 
 def main():
     # 数据集路径
-    dataset_path = Path(r'E:\meter\输出\表计_1')
+    dataset_path = Path(r'E:\DataForge\输出\表计_2')
 
     if not dataset_path.exists():
         print(f"错误: 数据集路径不存在 - {dataset_path}")
@@ -193,6 +220,7 @@ def main():
         return
 
     print(f"找到 {total} 张图片")
+    print(f"显示窗口最大尺寸: {MAX_DISPLAY_WIDTH}x{MAX_DISPLAY_HEIGHT}")
     print("\n操作说明：")
     print("  A/a - 保留当前图片")
     print("  D/d - 删除当前图片和标注")
@@ -220,14 +248,23 @@ def main():
             continue
 
         # 显示进度和文件名
-        progress = f"第 {current_index + 1}/{total} 张 - {subset}/{image_info['name']}"
+        orig_h, orig_w = img.shape[:2]
+        progress = f"第 {current_index + 1}/{total} 张 - {subset}/{image_info['name']} ({orig_w}x{orig_h})"
         print(f"\r{progress}", end='', flush=True)
 
-        # 在图片上叠加标注和进度信息
+        # 在图片上叠加标注
         label_path = get_label_path(image_info, dataset_path)
         display_img = draw_yolo_labels(img, label_path)
-        cv2.putText(display_img, progress, (10, 30),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        
+        # 缩放图片以适应显示
+        display_img, scale = resize_for_display(display_img)
+        
+        # 添加进度信息
+        info_text = f"{current_index + 1}/{total} - {subset}/{image_info['name']}"
+        if scale < 1.0:
+            info_text += f" (缩放: {scale:.2f}x)"
+        cv2.putText(display_img, info_text, (10, 30),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
         # 显示图片
         cv2.imshow('Data Cleaner', display_img)

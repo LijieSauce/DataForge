@@ -6,12 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "myproject"
 version = "0.1.0"
 requires-python = ">=3.10"
-dependencies = [
-    "PyQt5>=5.15",
-]
-
-[project.scripts]
-dataforge-ui = "src.ui.app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

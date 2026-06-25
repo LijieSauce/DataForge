@@ -113,3 +113,11 @@ class YoloToYOLO(BaseToYOLO):
                         break
 
 
+if __name__ == "__main__":
+    # 测试代码
+    input_path = Path("E:\DataForge\数据集\表计_1")
+    output_path = Path("E:\DataForge\输出\表计_1")
+    keep_labels = ["person", "car", "bicycle"]  # 需要保留的类别
+    
+    converter = YoloToYOLO(input_path, output_path, keep_labels)
+    converter.convert()
